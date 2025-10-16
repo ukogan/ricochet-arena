@@ -1,9 +1,11 @@
 class GameRoom {
-  constructor(roomId) {
+  constructor(roomId, botEnabled = false) {
     this.roomId = roomId;
     this.players = new Map(); // socketId -> { nickname, side, paddleY, score, ready }
     this.status = 'waiting'; // waiting, ready, countdown, playing, finished
     this.createdAt = Date.now();
+    this.botEnabled = botEnabled;
+    this.botDifficulty = 'medium'; // easy, medium, hard
 
     // Game constants
     this.FIELD_WIDTH = 16;
@@ -91,6 +93,11 @@ class GameRoom {
   }
 
   updateGame() {
+    // Update bot paddle if enabled
+    if (this.botEnabled) {
+      this.updateBotPaddle();
+    }
+
     // Update ball position
     this.ball.x += this.ball.vx;
     this.ball.y += this.ball.vy;
@@ -251,6 +258,58 @@ class GameRoom {
     }
 
     return scoreEvent;
+  }
+
+  updateBotPaddle() {
+    const players = Array.from(this.players.values());
+    const botPlayer = players.find(p => p.side === 'right'); // Bot is always right paddle
+
+    if (!botPlayer) return;
+
+    let targetY = this.ball.y; // Default target is ball Y position
+
+    // Predict ball trajectory for medium/hard difficulty
+    if (this.botDifficulty === 'medium' || this.botDifficulty === 'hard') {
+      // Simple prediction: where will ball be when it reaches paddle X?
+      const paddleX = this.FIELD_WIDTH / 2 - this.PADDLE_WIDTH;
+      const timeToReach = Math.abs((paddleX - this.ball.x) / this.ball.vx);
+      targetY = this.ball.y + this.ball.vy * timeToReach;
+
+      // Clamp to field bounds
+      targetY = Math.max(-this.FIELD_HEIGHT / 2, Math.min(this.FIELD_HEIGHT / 2, targetY));
+    }
+
+    // Add difficulty-based error and speed
+    let botSpeed;
+    let error = 0;
+
+    switch (this.botDifficulty) {
+      case 'easy':
+        botSpeed = 0.08; // Slower than human
+        error = (Math.random() - 0.5) * 1.5; // Large random error
+        break;
+      case 'medium':
+        botSpeed = 0.12; // Same as human
+        error = (Math.random() - 0.5) * 0.5; // Small random error
+        break;
+      case 'hard':
+        botSpeed = 0.15; // Faster than human
+        error = (Math.random() - 0.5) * 0.2; // Minimal error
+        break;
+    }
+
+    targetY += error;
+
+    // Move paddle toward target
+    const diff = targetY - botPlayer.paddleY;
+    if (Math.abs(diff) > 0.1) {
+      const movement = Math.sign(diff) * botSpeed;
+      botPlayer.paddleY += movement;
+
+      // Clamp to bounds
+      const maxY = this.FIELD_HEIGHT / 2 - this.PADDLE_HEIGHT / 2;
+      botPlayer.paddleY = Math.max(-maxY, Math.min(maxY, botPlayer.paddleY));
+    }
   }
 
   broadcastGameState(io) {

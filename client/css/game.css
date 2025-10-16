@@ -409,6 +409,45 @@ body {
     transform: translateY(-2px);
 }
 
+/* Touch Controls */
+.touch-controls {
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    display: none;
+    flex-direction: column;
+    gap: 20px;
+    z-index: 100;
+    pointer-events: all;
+}
+
+.touch-btn {
+    width: 80px;
+    height: 80px;
+    font-size: 2rem;
+    background: rgba(0, 255, 0, 0.3);
+    border: 3px solid #0f0;
+    border-radius: 50%;
+    color: #0f0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow: 0 4px 15px rgba(0, 255, 0, 0.3);
+}
+
+.touch-btn:active {
+    background: rgba(0, 255, 0, 0.6);
+    transform: scale(0.95);
+    box-shadow: 0 2px 10px rgba(0, 255, 0, 0.5);
+}
+
+.touch-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -457,5 +496,23 @@ body {
 
     .final-player-score {
         font-size: 3rem;
+    }
+
+    /* Show touch controls on mobile */
+    .touch-controls {
+        display: flex;
+    }
+
+    .touch-btn {
+        width: 70px;
+        height: 70px;
+        font-size: 1.8rem;
+    }
+}
+
+/* Hide touch controls on desktop with mouse */
+@media (hover: hover) and (pointer: fine) {
+    .touch-controls {
+        display: none !important;
     }
 }

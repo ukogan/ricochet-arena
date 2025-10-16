@@ -22,19 +22,20 @@ module.exports = (io) => {
     console.log(`✅ Client connected: ${socket.id}`);
 
     // Create a new game room
-    socket.on('create_room', ({ nickname }) => {
+    socket.on('create_room', ({ nickname, bot = false }) => {
       const roomId = nanoid(6);
-      const room = new GameRoom(roomId);
+      const room = new GameRoom(roomId, bot);
 
       // Just create empty room - players will join when they navigate to game page
       rooms.set(roomId, room);
 
-      console.log(`🎮 Room created: ${roomId}`);
+      console.log(`🎮 Room created: ${roomId}${bot ? ' (vs Bot)' : ''}`);
 
       socket.emit('room_created', {
         room_id: roomId,
         room_url: `${process.env.BASE_URL || 'http://localhost:3001'}/game/${roomId}`,
-        nickname: nickname || `Player_${Math.floor(Math.random() * 10000)}`
+        nickname: nickname || `Player_${Math.floor(Math.random() * 10000)}`,
+        bot_enabled: bot
       });
     });
 
@@ -64,8 +65,26 @@ module.exports = (io) => {
 
       console.log(`👥 Player ${playerNum} joined room: ${room_id}`);
 
-      // If both players present, notify and update status
-      if (room.players.size === 2) {
+      // If bot game, immediately add bot as second player
+      if (room.botEnabled && room.players.size === 1) {
+        room.addPlayer('bot', 'Bot', 'right');
+
+        const playersData = {
+          player1: {
+            nickname: Array.from(room.players.values())[0].nickname,
+            side: 'left'
+          },
+          player2: {
+            nickname: 'Bot',
+            side: 'right'
+          }
+        };
+
+        socket.emit('player_joined', playersData);
+        room.status = 'ready';
+      }
+      // If both players present (multiplayer), notify and update status
+      else if (room.players.size === 2) {
         const playersData = {
           player1: {
             nickname: Array.from(room.players.values())[0].nickname,
@@ -137,6 +156,9 @@ module.exports = (io) => {
 
       const player = room.players.get(socket.id);
       if (!player) return;
+
+      // Don't update bot paddle from client
+      if (room.botEnabled && player.side === 'right') return;
 
       // Validate paddle position
       const maxY = room.FIELD_HEIGHT / 2 - room.PADDLE_HEIGHT / 2;

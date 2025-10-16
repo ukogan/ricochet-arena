@@ -27,6 +27,11 @@ const BALL_RADIUS = 0.2;
 // Keyboard input
 const keys = {};
 
+// Paddle update throttling
+let lastPaddleUpdate = 0;
+const PADDLE_UPDATE_INTERVAL = 16; // Send updates every ~16ms (60fps) instead of every frame
+let myPaddleY = 0; // Track our paddle position locally
+
 // DOM Elements
 const waitingScreen = document.getElementById('waitingScreen');
 const countdownScreen = document.getElementById('countdownScreen');
@@ -48,6 +53,9 @@ const score2Display = document.getElementById('score2');
 const playAgainBtn = document.getElementById('playAgainBtn');
 const mainMenuBtn = document.getElementById('mainMenuBtn');
 const disconnectMenuBtn = document.getElementById('disconnectMenuBtn');
+
+const touchUpBtn = document.getElementById('touchUp');
+const touchDownBtn = document.getElementById('touchDown');
 
 // Initialize
 function init() {
@@ -72,6 +80,9 @@ function init() {
     window.addEventListener('keydown', (e) => keys[e.key.toLowerCase()] = true);
     window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
 
+    // Touch controls
+    setupTouchControls();
+
     // Setup Three.js
     setupThreeJS();
 
@@ -94,6 +105,50 @@ function copyRoomUrl() {
             copyBtn.textContent = '📋 Copy Link';
         }, 2000);
     });
+}
+
+function setupTouchControls() {
+    // Touch up button
+    touchUpBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (playerSide === 'left') {
+            keys['w'] = true;
+        } else if (playerSide === 'right') {
+            keys['arrowup'] = true;
+        }
+    });
+
+    touchUpBtn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        if (playerSide === 'left') {
+            keys['w'] = false;
+        } else if (playerSide === 'right') {
+            keys['arrowup'] = false;
+        }
+    });
+
+    // Touch down button
+    touchDownBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (playerSide === 'left') {
+            keys['s'] = true;
+        } else if (playerSide === 'right') {
+            keys['arrowdown'] = true;
+        }
+    });
+
+    touchDownBtn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        if (playerSide === 'left') {
+            keys['s'] = false;
+        } else if (playerSide === 'right') {
+            keys['arrowdown'] = false;
+        }
+    });
+
+    // Prevent accidental scrolling while using controls
+    touchUpBtn.addEventListener('touchmove', (e) => e.preventDefault());
+    touchDownBtn.addEventListener('touchmove', (e) => e.preventDefault());
 }
 
 function setupThreeJS() {
@@ -195,7 +250,7 @@ function updatePaddleInput() {
     if (!isGameActive || !playerSide) return;
 
     let movement = 0;
-    const paddleSpeed = 0.12;
+    const paddleSpeed = 0.15; // Increased from 0.12 for snappier feel
 
     if (playerSide === 'left') {
         if (keys['w']) movement = paddleSpeed;
@@ -207,16 +262,23 @@ function updatePaddleInput() {
 
     if (movement !== 0) {
         const paddle = playerSide === 'left' ? paddle1 : paddle2;
-        const newY = paddle.position.y + movement;
+
+        // Update local position immediately (client-side prediction)
+        myPaddleY += movement;
 
         // Clamp to bounds
         const maxY = FIELD_HEIGHT / 2 - PADDLE_HEIGHT / 2;
-        const clampedY = Math.max(-maxY, Math.min(maxY, newY));
+        myPaddleY = Math.max(-maxY, Math.min(maxY, myPaddleY));
 
-        paddle.position.y = clampedY;
+        // Always render our paddle at our predicted position
+        paddle.position.y = myPaddleY;
 
-        // Send to server
-        socket.emit('paddle_move', { y: clampedY, timestamp: Date.now() });
+        // Throttle server updates to reduce network traffic
+        const now = Date.now();
+        if (now - lastPaddleUpdate >= PADDLE_UPDATE_INTERVAL) {
+            socket.emit('paddle_move', { y: myPaddleY, timestamp: now });
+            lastPaddleUpdate = now;
+        }
     }
 }
 
@@ -280,9 +342,18 @@ socket.on('game_state', (data) => {
     // Update ball
     ball.position.set(data.ball.x, data.ball.y, 0);
 
-    // Update paddles
-    paddle1.position.y = data.paddle1_y;
-    paddle2.position.y = data.paddle2_y;
+    // Update opponent's paddle only (not our own - we use client-side prediction)
+    if (playerSide === 'left') {
+        // We control left paddle, update right from server
+        paddle2.position.y = data.paddle2_y;
+        // Sync our paddle position with server occasionally (reconciliation)
+        myPaddleY = data.paddle1_y;
+    } else if (playerSide === 'right') {
+        // We control right paddle, update left from server
+        paddle1.position.y = data.paddle1_y;
+        // Sync our paddle position with server occasionally (reconciliation)
+        myPaddleY = data.paddle2_y;
+    }
 
     // Update scores
     score1Display.textContent = data.scores.left;

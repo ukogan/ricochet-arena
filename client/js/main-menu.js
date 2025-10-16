@@ -3,9 +3,10 @@ const socket = io();
 
 // Get DOM elements
 const createGameBtn = document.getElementById('createGameBtn');
+const playBotBtn = document.getElementById('playBotBtn');
 const nicknameInput = document.getElementById('nickname');
 
-// Create game button click handler
+// Create multiplayer game button click handler
 createGameBtn.addEventListener('click', () => {
   const nickname = nicknameInput.value.trim() || '';
 
@@ -14,7 +15,19 @@ createGameBtn.addEventListener('click', () => {
   createGameBtn.innerHTML = '<span class="spinner"></span> Creating Room...';
 
   // Emit create_room event
-  socket.emit('create_room', { nickname });
+  socket.emit('create_room', { nickname, bot: false });
+});
+
+// Play vs Bot button click handler
+playBotBtn.addEventListener('click', () => {
+  const nickname = nicknameInput.value.trim() || '';
+
+  // Disable button while creating
+  playBotBtn.disabled = true;
+  playBotBtn.innerHTML = '<span class="spinner"></span> Starting Game...';
+
+  // Emit create_room event with bot flag
+  socket.emit('create_room', { nickname, bot: true });
 });
 
 // Listen for room_created event
