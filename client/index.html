@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ricochet Arena - Online Multiplayer Pong</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">🎮 RICOCHET ARENA</h1>
+            <p class="subtitle">Competitive Online Pong</p>
+        </header>
+
+        <main class="main-menu">
+            <div class="menu-card">
+                <h2>Play with a Friend</h2>
+                <p class="description">Create a game room and share the link with your friend to start playing!</p>
+
+                <div class="nickname-section">
+                    <label for="nickname">Your Nickname (optional)</label>
+                    <input
+                        type="text"
+                        id="nickname"
+                        placeholder="Enter nickname or leave blank"
+                        maxlength="20"
+                        autocomplete="off"
+                    />
+                </div>
+
+                <button id="createGameBtn" class="btn btn-primary">
+                    Create Game
+                </button>
+
+                <div class="features">
+                    <div class="feature">
+                        <span class="feature-icon">⚡</span>
+                        <span>Real-time Multiplayer</span>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">🎯</span>
+                        <span>First to 50 Points Wins</span>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">🎨</span>
+                        <span>Curved Paddles & Obstacles</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="how-to-play">
+                <h3>How to Play</h3>
+                <ol>
+                    <li>Click "Create Game" to generate a room</li>
+                    <li>Copy the link and send it to your friend</li>
+                    <li>Wait for them to join</li>
+                    <li>Game starts automatically!</li>
+                </ol>
+                <div class="controls">
+                    <p><strong>Controls:</strong></p>
+                    <p>Player 1 (Left): <kbd>W</kbd> / <kbd>S</kbd></p>
+                    <p>Player 2 (Right): <kbd>↑</kbd> / <kbd>↓</kbd></p>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>Built with Socket.IO • First to 50 Points Wins</p>
+        </footer>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/main-menu.js"></script>
+</body>
+</html>

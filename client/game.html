@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ricochet Arena - Game Room</title>
+    <link rel="stylesheet" href="/css/game.css">
+</head>
+<body>
+    <!-- Waiting Room Screen -->
+    <div id="waitingScreen" class="screen active">
+        <div class="waiting-container">
+            <h1>🎮 Room Created!</h1>
+            <p class="waiting-message">Waiting for player 2 to join...</p>
+
+            <div class="room-info">
+                <label>Share this link with your friend:</label>
+                <div class="url-container">
+                    <input
+                        type="text"
+                        id="roomUrl"
+                        readonly
+                        class="room-url"
+                    />
+                    <button id="copyBtn" class="btn btn-copy">
+                        📋 Copy Link
+                    </button>
+                </div>
+                <p class="copy-status" id="copyStatus"></p>
+            </div>
+
+            <div class="player-info">
+                <div class="player-card">
+                    <div class="player-icon">👤</div>
+                    <div class="player-name" id="player1Name">You</div>
+                    <div class="player-side">Left Paddle</div>
+                </div>
+                <div class="vs">VS</div>
+                <div class="player-card waiting">
+                    <div class="player-icon">⏳</div>
+                    <div class="player-name">Waiting...</div>
+                    <div class="player-side">Right Paddle</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Countdown Screen -->
+    <div id="countdownScreen" class="screen">
+        <div class="countdown-container">
+            <h2>Get Ready!</h2>
+            <div class="countdown-number" id="countdownNumber">3</div>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameScreen" class="screen">
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- HUD Overlay -->
+        <div class="hud">
+            <div class="player-hud left">
+                <div class="player-name-hud" id="player1NameHud">Player 1</div>
+                <div class="score" id="score1">0</div>
+            </div>
+            <div class="center-hud">
+                <div class="connection-status" id="connectionStatus">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Connected</span>
+                </div>
+            </div>
+            <div class="player-hud right">
+                <div class="score" id="score2">0</div>
+                <div class="player-name-hud" id="player2NameHud">Player 2</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameOverScreen" class="screen">
+        <div class="gameover-container">
+            <h1 class="gameover-title" id="gameoverTitle">🏆 Victory!</h1>
+            <div class="final-scores">
+                <div class="final-score">
+                    <div class="final-player-name" id="finalPlayer1"></div>
+                    <div class="final-player-score" id="finalScore1">0</div>
+                </div>
+                <div class="final-divider">-</div>
+                <div class="final-score">
+                    <div class="final-player-score" id="finalScore2">0</div>
+                    <div class="final-player-name" id="finalPlayer2"></div>
+                </div>
+            </div>
+
+            <div class="game-stats">
+                <div class="stat">
+                    <span class="stat-label">Duration:</span>
+                    <span class="stat-value" id="gameDuration">0:00</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Obstacles Destroyed:</span>
+                    <span class="stat-value" id="obstaclesDestroyed">0</span>
+                </div>
+            </div>
+
+            <button id="playAgainBtn" class="btn btn-primary btn-large">
+                🎮 Play Again
+            </button>
+            <button id="mainMenuBtn" class="btn btn-secondary btn-large">
+                🏠 Main Menu
+            </button>
+        </div>
+    </div>
+
+    <!-- Disconnection Screen -->
+    <div id="disconnectScreen" class="screen">
+        <div class="disconnect-container">
+            <h1>⚠️ Opponent Disconnected</h1>
+            <p>Your opponent has left the game.</p>
+            <button id="disconnectMenuBtn" class="btn btn-primary">
+                Return to Main Menu
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/game-client.js"></script>
+</body>
+</html>

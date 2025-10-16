@@ -1,0 +1,35 @@
+{
+  "name": "ricochet-arena",
+  "version": "1.0.0",
+  "description": "Competitive online multiplayer Pong with curved paddles and destructible obstacles",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "nodemon server/index.js",
+    "test": "echo \"Tests coming in Phase 2\" && exit 0"
+  },
+  "keywords": [
+    "pong",
+    "multiplayer",
+    "game",
+    "websocket",
+    "socket.io"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.6.1",
+    "nanoid": "^3.3.7",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
