@@ -32,6 +32,11 @@ let lastPaddleUpdate = 0;
 const PADDLE_UPDATE_INTERVAL = 16; // Send updates every ~16ms (60fps) instead of every frame
 let myPaddleY = 0; // Track our paddle position locally
 
+// Interpolation for smooth rendering
+let targetBallX = 0, targetBallY = 0;
+let targetOpponentPaddleY = 0;
+const INTERPOLATION_FACTOR = 0.3; // Higher = snappier but more jittery, Lower = smoother but more lag
+
 // DOM Elements
 const waitingScreen = document.getElementById('waitingScreen');
 const countdownScreen = document.getElementById('countdownScreen');
@@ -290,9 +295,25 @@ function animate() {
 
     if (isGameActive) {
         updatePaddleInput();
+        applyInterpolation();
     }
 
     renderer.render(scene, camera);
+}
+
+function applyInterpolation() {
+    // Smoothly interpolate ball position
+    if (ball) {
+        ball.position.x += (targetBallX - ball.position.x) * INTERPOLATION_FACTOR;
+        ball.position.y += (targetBallY - ball.position.y) * INTERPOLATION_FACTOR;
+    }
+
+    // Smoothly interpolate opponent's paddle
+    if (playerSide === 'left' && paddle2) {
+        paddle2.position.y += (targetOpponentPaddleY - paddle2.position.y) * INTERPOLATION_FACTOR;
+    } else if (playerSide === 'right' && paddle1) {
+        paddle1.position.y += (targetOpponentPaddleY - paddle1.position.y) * INTERPOLATION_FACTOR;
+    }
 }
 
 // Socket event handlers
@@ -347,18 +368,19 @@ socket.on('game_start', (data) => {
 });
 
 socket.on('game_state', (data) => {
-    // Update ball
-    ball.position.set(data.ball.x, data.ball.y, 0);
+    // Set target positions for interpolation (smooth movement)
+    targetBallX = data.ball.x;
+    targetBallY = data.ball.y;
 
-    // Update opponent's paddle only (not our own - we use client-side prediction)
+    // Update opponent's paddle target only (not our own - we use client-side prediction)
     if (playerSide === 'left') {
-        // We control left paddle, update right from server
-        paddle2.position.y = data.paddle2_y;
+        // We control left paddle, interpolate right paddle from server
+        targetOpponentPaddleY = data.paddle2_y;
         // Sync our paddle position with server occasionally (reconciliation)
         myPaddleY = data.paddle1_y;
     } else if (playerSide === 'right') {
-        // We control right paddle, update left from server
-        paddle1.position.y = data.paddle1_y;
+        // We control right paddle, interpolate left paddle from server
+        targetOpponentPaddleY = data.paddle1_y;
         // Sync our paddle position with server occasionally (reconciliation)
         myPaddleY = data.paddle2_y;
     }
