@@ -410,13 +410,21 @@ socket.on('game_state', (data) => {
     if (playerSide === 'left') {
         // We control left paddle, interpolate right paddle from server
         targetOpponentPaddleY = data.paddle2_y;
-        // Sync our paddle position with server occasionally (reconciliation)
-        myPaddleY = data.paddle1_y;
+
+        // Only reconcile our paddle if severely desynced (difference > 0.5 units)
+        const desync = Math.abs(myPaddleY - data.paddle1_y);
+        if (desync > 0.5) {
+            myPaddleY = data.paddle1_y;
+        }
     } else if (playerSide === 'right') {
         // We control right paddle, interpolate left paddle from server
         targetOpponentPaddleY = data.paddle1_y;
-        // Sync our paddle position with server occasionally (reconciliation)
-        myPaddleY = data.paddle2_y;
+
+        // Only reconcile our paddle if severely desynced
+        const desync = Math.abs(myPaddleY - data.paddle2_y);
+        if (desync > 0.5) {
+            myPaddleY = data.paddle2_y;
+        }
     }
 
     // Update scores
