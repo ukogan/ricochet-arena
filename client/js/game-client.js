@@ -10,6 +10,7 @@ let playerSide = null;
 let player1Name = '';
 let player2Name = '';
 let isGameActive = false;
+let isBotGame = false; // Track if playing against bot
 
 // Three.js variables
 let scene, camera, renderer;
@@ -121,7 +122,10 @@ function setupTouchControls() {
     // Touch up button
     touchUpBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        if (playerSide === 'left') {
+        // In bot games, always use W/S (player is always on left)
+        if (isBotGame) {
+            keys['w'] = true;
+        } else if (playerSide === 'left') {
             keys['w'] = true;
         } else if (playerSide === 'right') {
             keys['arrowup'] = true;
@@ -130,7 +134,9 @@ function setupTouchControls() {
 
     touchUpBtn.addEventListener('touchend', (e) => {
         e.preventDefault();
-        if (playerSide === 'left') {
+        if (isBotGame) {
+            keys['w'] = false;
+        } else if (playerSide === 'left') {
             keys['w'] = false;
         } else if (playerSide === 'right') {
             keys['arrowup'] = false;
@@ -140,7 +146,9 @@ function setupTouchControls() {
     // Touch down button
     touchDownBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        if (playerSide === 'left') {
+        if (isBotGame) {
+            keys['s'] = true;
+        } else if (playerSide === 'left') {
             keys['s'] = true;
         } else if (playerSide === 'right') {
             keys['arrowdown'] = true;
@@ -149,7 +157,9 @@ function setupTouchControls() {
 
     touchDownBtn.addEventListener('touchend', (e) => {
         e.preventDefault();
-        if (playerSide === 'left') {
+        if (isBotGame) {
+            keys['s'] = false;
+        } else if (playerSide === 'left') {
             keys['s'] = false;
         } else if (playerSide === 'right') {
             keys['arrowdown'] = false;
@@ -262,12 +272,19 @@ function updatePaddleInput() {
     let movement = 0;
     const paddleSpeed = 0.15; // Increased from 0.12 for snappier feel
 
-    if (playerSide === 'left') {
+    // In bot games, only allow W/S keys (player is always on left)
+    if (isBotGame) {
         if (keys['w']) movement = paddleSpeed;
         if (keys['s']) movement = -paddleSpeed;
-    } else if (playerSide === 'right') {
-        if (keys['arrowup']) movement = paddleSpeed;
-        if (keys['arrowdown']) movement = -paddleSpeed;
+    } else {
+        // In multiplayer, use side-specific controls
+        if (playerSide === 'left') {
+            if (keys['w']) movement = paddleSpeed;
+            if (keys['s']) movement = -paddleSpeed;
+        } else if (playerSide === 'right') {
+            if (keys['arrowup']) movement = paddleSpeed;
+            if (keys['arrowdown']) movement = -paddleSpeed;
+        }
     }
 
     if (movement !== 0) {
@@ -336,6 +353,9 @@ socket.on('player_joined', (data) => {
     player1Name = data.player1.nickname;
     player2Name = data.player2.nickname;
 
+    // Detect if this is a bot game
+    isBotGame = (player2Name === 'Bot');
+
     player1NameDisplay.textContent = player1Name;
     player1NameHud.textContent = player1Name;
     player2NameHud.textContent = player2Name;
@@ -360,6 +380,7 @@ socket.on('player_joined', (data) => {
     }
 
     console.log('My side:', playerSide, 'Player 1:', player1Name, 'Player 2:', player2Name);
+    console.log('Bot game:', isBotGame);
     console.log('Emitting player_ready event...');
 
     // Both players present, mark ready
