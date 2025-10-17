@@ -49,6 +49,8 @@ const copyBtn = document.getElementById('copyBtn');
 const copyStatus = document.getElementById('copyStatus');
 const countdownNumber = document.getElementById('countdownNumber');
 
+const waitingTitle = document.getElementById('waitingTitle');
+const waitingMessage = document.getElementById('waitingMessage');
 const player1NameDisplay = document.getElementById('player1Name');
 const player2NameDisplay = document.getElementById('player2NameDisplay');
 const player2Card = document.getElementById('player2Card');
@@ -343,16 +345,27 @@ socket.on('player_joined', (data) => {
     player2Icon.textContent = player2Name === 'Bot' ? '🤖' : '👤';
     player2Card.classList.remove('waiting');
 
+    // Update waiting screen messages
+    if (player2Name === 'Bot') {
+        waitingTitle.textContent = '🤖 Bot Opponent Ready!';
+        waitingMessage.textContent = 'Preparing to start game...';
+    } else {
+        waitingTitle.textContent = '✅ Both Players Ready!';
+        waitingMessage.textContent = 'Get ready to play...';
+    }
+
     // If playerSide wasn't set yet (we're player 2), we must be right
     if (!playerSide) {
         playerSide = 'right';
     }
 
     console.log('My side:', playerSide, 'Player 1:', player1Name, 'Player 2:', player2Name);
+    console.log('Emitting player_ready event...');
 
     // Both players present, mark ready
     setTimeout(() => {
         socket.emit('player_ready');
+        console.log('player_ready emitted');
     }, 500);
 });
 
