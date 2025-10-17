@@ -158,18 +158,28 @@ module.exports = (io) => {
     // Paddle movement
     socket.on('paddle_move', ({ y, timestamp }) => {
       const room = rooms.get(socket.roomId);
-      if (!room || room.status !== 'playing') return;
+      if (!room || room.status !== 'playing') {
+        console.log(`⚠️  paddle_move rejected: room=${!!room}, status=${room?.status}`);
+        return;
+      }
 
       const player = room.players.get(socket.id);
-      if (!player) return;
+      if (!player) {
+        console.log(`⚠️  paddle_move rejected: player not found for socket ${socket.id}`);
+        return;
+      }
 
       // Don't update bot paddle from client
-      if (room.botEnabled && player.side === 'right') return;
+      if (room.botEnabled && player.side === 'right') {
+        console.log(`⚠️  paddle_move rejected: bot paddle (right side)`);
+        return;
+      }
 
       // Validate paddle position
       const maxY = room.FIELD_HEIGHT / 2 - room.PADDLE_HEIGHT / 2;
       const validY = Math.max(-maxY, Math.min(maxY, y));
 
+      console.log(`✓ Paddle move accepted: ${player.nickname} (${player.side}) y=${validY.toFixed(2)}`);
       player.paddleY = validY;
     });
 

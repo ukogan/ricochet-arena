@@ -374,9 +374,15 @@ socket.on('player_joined', (data) => {
         waitingMessage.textContent = 'Get ready to play...';
     }
 
-    // If playerSide wasn't set yet (we're player 2), we must be right
+    // Determine which side we're on
+    // In bot games, player is ALWAYS on left (player 1)
+    // In multiplayer, if playerSide not set yet, we're player 2 (right)
     if (!playerSide) {
-        playerSide = 'right';
+        if (isBotGame) {
+            playerSide = 'left'; // Bot games: player is always left
+        } else {
+            playerSide = 'right'; // Multiplayer: second to join is right
+        }
     }
 
     console.log('My side:', playerSide, 'Player 1:', player1Name, 'Player 2:', player2Name);
