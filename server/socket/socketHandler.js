@@ -69,6 +69,12 @@ module.exports = (io) => {
       if (room.botEnabled && room.players.size === 1) {
         room.addPlayer('bot', 'Bot', 'right');
 
+        // Mark bot as ready immediately (bot doesn't emit player_ready)
+        const botPlayer = room.players.get('bot');
+        if (botPlayer) {
+          botPlayer.ready = true;
+        }
+
         const playersData = {
           player1: {
             nickname: Array.from(room.players.values())[0].nickname,
