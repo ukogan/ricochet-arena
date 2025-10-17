@@ -45,6 +45,9 @@ const copyStatus = document.getElementById('copyStatus');
 const countdownNumber = document.getElementById('countdownNumber');
 
 const player1NameDisplay = document.getElementById('player1Name');
+const player2NameDisplay = document.getElementById('player2NameDisplay');
+const player2Card = document.getElementById('player2Card');
+const player2Icon = document.getElementById('player2Icon');
 const player1NameHud = document.getElementById('player1NameHud');
 const player2NameHud = document.getElementById('player2NameHud');
 const score1Display = document.getElementById('score1');
@@ -313,6 +316,11 @@ socket.on('player_joined', (data) => {
     player1NameDisplay.textContent = player1Name;
     player1NameHud.textContent = player1Name;
     player2NameHud.textContent = player2Name;
+
+    // Update waiting screen player 2 info
+    player2NameDisplay.textContent = player2Name;
+    player2Icon.textContent = player2Name === 'Bot' ? '🤖' : '👤';
+    player2Card.classList.remove('waiting');
 
     // If playerSide wasn't set yet (we're player 2), we must be right
     if (!playerSide) {
